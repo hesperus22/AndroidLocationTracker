@@ -13,7 +13,12 @@ public class OnBootReceiver extends BroadcastReceiver {
         Log.d("LocationTracker", "On boot receiver");
         Intent i = new Intent(context, OnAlarmRecceiver.class);
 
+
         TimerManager.addIntentToAlarmMgr(i, context, 5000);
+TimerManager.removeIntentFromAlarmMgr(i,context);
+
+
+        TrackerLocationManager.addListener(context);
     }
 }
 

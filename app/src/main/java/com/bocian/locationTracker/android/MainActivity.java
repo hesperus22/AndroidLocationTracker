@@ -1,18 +1,12 @@
 package com.bocian.locationTracker.android;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-
 
 
 public class MainActivity extends Activity {
@@ -31,40 +25,6 @@ public class MainActivity extends Activity {
                 sendBroadcast(intent);
             }
         });
-
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        LocationListener listner = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                Log.d("LocationTracker", location.getProvider());
-                Log.d("LocationTracker", String.valueOf(location.getLatitude()));
-                Log.d("LocationTracker", String.valueOf(location.getLongitude()));
-                Log.d("LocationTracker", String.valueOf(location.getAccuracy()));
-
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d("LocationTracker", provider);
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-                Log.d("LocationTracker", provider + " enabled");
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-                Log.d("Locationd", provider + " disabled");
-
-            }
-        };
-
-        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1, 1, listner);
 
 
     }
