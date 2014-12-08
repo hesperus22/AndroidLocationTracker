@@ -13,26 +13,25 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-public class MyService extends IntentService {
+public class LocationService extends IntentService {
     private static PowerManager.WakeLock lockStatic=null;
 
-    public MyService() {
-        super("AppService");
-
-        Log.d("MyApp", "Service created");
+    public LocationService() {
+        super("LocationService");
     }
 
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d("MyApp", "Start intent");
+        Log.d("LocationTracker", "LocationService: onHandleIntent start");
 
         try {
             TimeUnit.SECONDS.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Log.d("MyApp", "Stop intent");
+
+        Log.d("LocationTracker", "LocationService: onHandleIntent stop");
 
 
 
@@ -57,7 +56,7 @@ public class MyService extends IntentService {
         getLock(context).acquire();
     }
 
-    public static final String LOCK_NAME_STATIC="com.commonsware.android.syssvc.AppService.Static";
+    public static final String LOCK_NAME_STATIC="com.bocian.locationTracker.android.STATIC_LOCK";
 
 
     synchronized private static PowerManager.WakeLock getLock(Context context) {

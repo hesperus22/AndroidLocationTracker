@@ -37,23 +37,23 @@ public class MainActivity extends Activity {
         LocationListener listner = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.d("Locationd", location.getProvider());
-                Log.d("Locationd", String.valueOf(location.getLatitude()));
-                Log.d("Locationd", String.valueOf(location.getLongitude()));
-                Log.d("Locationd", String.valueOf(location.getAccuracy()));
+                Log.d("LocationTracker", location.getProvider());
+                Log.d("LocationTracker", String.valueOf(location.getLatitude()));
+                Log.d("LocationTracker", String.valueOf(location.getLongitude()));
+                Log.d("LocationTracker", String.valueOf(location.getAccuracy()));
 
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d("Locationd", provider);
+                Log.d("LocationTracker", provider);
 
             }
 
             @Override
             public void onProviderEnabled(String provider) {
 
-                Log.d("Locationd", provider + " enabled");
+                Log.d("LocationTracker", provider + " enabled");
 
             }
 

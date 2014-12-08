@@ -10,7 +10,7 @@ public class OnBootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("MyApp", "On boot receiver");
+        Log.d("LocationTracker", "On boot receiver");
         Intent i = new Intent(context, OnAlarmRecceiver.class);
 
         TimerManager.addIntentToAlarmMgr(i, context, 5000);
