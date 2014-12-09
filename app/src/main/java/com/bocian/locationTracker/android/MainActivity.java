@@ -8,6 +8,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.bocian.locationTracker.android.settings.SettingsActivity;
+
 
 public class MainActivity extends Activity {
 
@@ -25,8 +27,6 @@ public class MainActivity extends Activity {
                 sendBroadcast(intent);
             }
         });
-
-
     }
 
 
@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            startActivity(new Intent(this, SettingsActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
