@@ -1,4 +1,4 @@
-package com.bocian.locationTracker.android;
+package com.bocian.locationTracker.android.location;
 
 import android.location.GpsStatus;
 import android.location.Location;
