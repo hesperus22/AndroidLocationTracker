@@ -24,8 +24,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
 
-        Button startall = (Button) findViewById(R.id.startAll);
-        startall.setOnClickListener(new View.OnClickListener() {
+        Button startAll = (Button) findViewById(R.id.startAll);
+        startAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent("com.bocian.locationTracker.android.FAKE_BROADCAST");
@@ -33,8 +33,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        Button stopall = (Button) findViewById(R.id.stopAll);
-        stopall.setOnClickListener(new View.OnClickListener() {
+        Button stopAll = (Button) findViewById(R.id.stopAll);
+        stopAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent("com.bocian.locationTracker.android.FAKE_BROADCAST");

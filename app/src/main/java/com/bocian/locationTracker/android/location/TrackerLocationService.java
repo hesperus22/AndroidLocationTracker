@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.GpsStatus;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by bocian on 08.12.14.
@@ -24,6 +27,7 @@ public class TrackerLocationService extends Service {
 
     private IBinder binder = new LocalBinder();
     private GpsStatus.Listener gpsStatusListener;
+    private LocationUpdateListener addLocationListener;
 
     public void addLocationListener(LocationUpdateListener locationUpdateListener) {
         listener.addListener(locationUpdateListener);
@@ -40,6 +44,11 @@ public class TrackerLocationService extends Service {
         }
     }
 
+    LinkedBlockingQueue<Location> queue;
+
+    public LinkedBlockingQueue<Location> getQueue() {
+        return queue;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -50,6 +59,7 @@ public class TrackerLocationService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d("LocationTracker", "TrackerLocationService.onCreate");
+
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -69,6 +79,12 @@ public class TrackerLocationService extends Service {
         listener = new TrackerLocationListener();
         gpsStatusListener = new GpsStatusListener();
 
+
+        queue = new LinkedBlockingQueue<Location>();
+
+        addLocationListener= new MyLocationUpdateListener();
+        addLocationListener(addLocationListener);
+
         addLocationListener(true);
 //        registerGpsStatusListener();
 
@@ -82,6 +98,8 @@ public class TrackerLocationService extends Service {
         IS_RUNNING = false;
 
         Log.d("LocationTracker", "TrackerLocationService: destroyed");
+
+        removeLocationListener(addLocationListener);
 
         // cleaning up
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -134,6 +152,13 @@ public class TrackerLocationService extends Service {
                 removeLocationUpdatesListener();
                 addLocationListener(true);
             }
+        }
+    }
+
+    class MyLocationUpdateListener implements LocationUpdateListener {
+        @Override
+        public void handle(Location location) {
+            queue.offer(location);
         }
     }
 }

@@ -5,11 +5,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
 import com.bocian.locationTracker.android.location.TrackerLocationService;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 public class CommunicationService extends IntentService {
 
@@ -40,20 +44,14 @@ public class CommunicationService extends IntentService {
         unbindService(conn);
     }
 
+    Semaphore s = new Semaphore(1);
+
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d("LocationTracker", "CommunicationService: onHandleIntent");
-//
-//        if (trackerLocationService == null) {
-//            Log.d("LocationTracker", "CommunicationService: trackerLocationService is null");
-//        } else {
-//            trackerLocationService.addLocationListener(new LocationUpdateListener() {
-//                @Override
-//                public void handle(Location location) {
-//                    Log.d("LocationTracker", "CommunicationService.LocationUpdateListener.handle: " + location);
-//                }
-//            });
-//        }
+
+
+
         Log.d("LocationTracker", "CommunicationService: onHandleIntent end");
 
 //        lockStatic.release();
@@ -92,6 +90,15 @@ public class CommunicationService extends IntentService {
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected");
             trackerLocationService = ((TrackerLocationService.LocalBinder) iBinder).getService();
+
+            LinkedBlockingQueue<Location> queue = trackerLocationService.getQueue();
+            while (!queue.isEmpty()) {
+                Location poll = queue.poll();
+                Log.d("LocationTracker", "CommunicationService: onHandleIntent polled:" + poll);
+            }
+
+            Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected end");
+
         }
 
         @Override
