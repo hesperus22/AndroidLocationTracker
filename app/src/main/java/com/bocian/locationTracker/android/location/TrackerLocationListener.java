@@ -6,40 +6,32 @@ import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by bocian on 08.12.14.
  */
-public class TrackerLocationListener implements LocationListener, GpsStatus.Listener {
-
-    private List<Location> locations = new ArrayList<Location>();
-    private boolean flagGps;
+public class TrackerLocationListener implements LocationListener{
 
 
-    @Override
-    public synchronized void onGpsStatusChanged(int event) {
-        Log.d("LocationTracker", "TrackerLocationListener.onGpsStatusChanged: " + event);
-        if (event == GpsStatus.GPS_EVENT_STOPPED) {
-            flagGps = false;
+    private Set<LocationUpdateListener> listeners = new HashSet<LocationUpdateListener>();
+
+
+    public void addListener(LocationUpdateListener listener) {
+        listeners.add(listener);
+    }
+
+    private void notifyListeners(Location location) {
+        for (LocationUpdateListener listener : listeners) {
+            listener.handle(location);
         }
-        if (event == GpsStatus.GPS_EVENT_FIRST_FIX) {
-            flagGps = true;
-        }
-        Log.d("LocationTracker", "TrackerLocationListener.onGpsStatusChanged: flagGps=" + flagGps);
-
     }
 
     @Override
     public synchronized void onLocationChanged(Location location) {
         Log.d("LocationTracker", "TrackerLocationListener.onLocationChanged: " + location);
-
-        if (flagGps && !location.getProvider().equals("gps")) {
-            Log.d("LocationTracker", "TrackerLocationListener.onLocationChanged: location from GPS, other is not needed");
-            return;
-        }
-        locations.add(location);
+        notifyListeners(location);
     }
 
     @Override
@@ -60,9 +52,8 @@ public class TrackerLocationListener implements LocationListener, GpsStatus.List
 
     }
 
-    public List<Location> getLocations() {
-        return locations;
+    public void removeListener(LocationUpdateListener locationUpdateListener) {
+        listeners.remove(locationUpdateListener);
+
     }
-
-
 }

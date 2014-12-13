@@ -27,15 +27,26 @@
         <receiver android:name="com.bocian.locationTracker.android.OnBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+
                 <action android:name="com.bocian.locationTracker.android.FAKE_BROADCAST" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".communication.OnAlarmRecceiver"></receiver>
 
+        <receiver android:name=".settings.InstallReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".communication.OnAlarmReceiver"></receiver>
+
+        <service android:name=".location.TrackerLocationService"></service>
         <service android:name=".communication.CommunicationService"></service>
         <service android:name=".communication.CommunicationAlarmService"></service>
-        <service
-            android:name=".location.TrackerLocationService"></service>
 
     </application>
 </manifest>

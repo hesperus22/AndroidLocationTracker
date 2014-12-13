@@ -12,19 +12,52 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/newButton"
-        android:id="@+id/button"
+        android:text="Start all"
+        android:id="@+id/startAll"
+        android:layout_marginTop="90dp"
         android:layout_below="@+id/textView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="85dp" />
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Button"
-        android:id="@+id/button2"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="56dp" />
+        android:text="Start track"
+        android:id="@+id/startTrack"
+        android:layout_marginTop="133dp"
+        android:layout_below="@+id/startAll"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start comm"
+        android:id="@+id/startComm"
+        android:layout_marginTop="55dp"
+        android:layout_below="@+id/startTrack"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop track"
+        android:id="@+id/stopTrack"
+        android:layout_alignTop="@+id/startTrack"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop comm"
+        android:id="@+id/stopComm"
+        android:layout_alignTop="@+id/startComm"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop all"
+        android:id="@+id/stopAll"
+        android:layout_alignBottom="@+id/startAll"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

@@ -16,8 +16,11 @@ public class OnBootReceiver extends BroadcastReceiver {
         Log.d("LocationTracker", "On boot receiver");
 
 
+
+
         Intent trackerLocationService = new Intent(context, TrackerLocationService.class);
         context.startService(trackerLocationService);
+
 
         Intent communicationAlarmService = new Intent(context, CommunicationAlarmService.class);
         context.startService(communicationAlarmService);

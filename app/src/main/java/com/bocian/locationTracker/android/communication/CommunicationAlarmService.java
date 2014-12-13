@@ -22,46 +22,60 @@ public class CommunicationAlarmService extends Service {
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferencesChangeListener;
 
     private TrackerLocationService trackerLocationService;
+    private TrackerLocationServiceConnection conn;
 
     @Override
     public void onCreate() {
+        super.onCreate();
+
         Log.d("LocationTracker", "CommunicationAlarmService: created");
+        removeIntentFromAlarmMgr();
 
-        try {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-            sharedPreferencesChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-                    if (s.equals("updateInterval")) {
-                        Log.d("LocationTracker", "sharedPreferenceChangeListener: updateInterval changed: " + sharedPreferences.getBoolean(s, false));
-                    }
+        sharedPreferencesChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+                if (s.equals("updateInterval")) {
+                    Log.d("LocationTracker", "sharedPreferenceChangeListener: updateInterval changed: " + sharedPreferences.getString(s, "1000"));
+                    removeIntentFromAlarmMgr();
+                    addIntentToAlarmMgr(Long.parseLong(sharedPreferences.getString(s, "1000")));
                 }
-            };
+            }
+        };
+        conn = new TrackerLocationServiceConnection();
 
-            Intent intent = new Intent(this, TrackerLocationService.class);
-            bindService(intent, new TrackerLocationServiceConnection(), Context.BIND_AUTO_CREATE);
-            preferences.registerOnSharedPreferenceChangeListener(sharedPreferencesChangeListener);
+        bindToTrackerLocationService();
+        preferences.registerOnSharedPreferenceChangeListener(sharedPreferencesChangeListener);
 
 
-            addIntentToAlarmMgr(2000);
-        }catch(Exception e)
-        {
-            Log.d("Dupa", e.toString());
-        }
+        addIntentToAlarmMgr(Long.parseLong(preferences.getString("updateInterval", "1000")));
         Log.d("LocationTracker", "CommunicationAlarmService: endOfCreated");
 
     }
 
+    private void bindToTrackerLocationService() {
+        Intent intent = new Intent(this, TrackerLocationService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+    }
+
+    private void unbindToTrackerLocationService() {
+        unbindService(conn);
+    }
+
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        removeIntentFromAlarmMgr();
+        unbindToTrackerLocationService();
     }
 
     private void addIntentToAlarmMgr(long period) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, OnAlarmRecceiver.class)
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, OnAlarmReceiver.class)
                 , 0);
 
         Log.d("LocationTracker", "CommunicationAlarmService: addIntentToAlarmMgr");
@@ -74,7 +88,7 @@ public class CommunicationAlarmService extends Service {
     private void removeIntentFromAlarmMgr() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, OnAlarmRecceiver.class), 0);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, OnAlarmReceiver.class), 0);
 
         Log.d("LocationTracker", "CommunicationAlarmService: removeIntentFromAlarmMgr");
         alarmManager.cancel(pendingIntent);

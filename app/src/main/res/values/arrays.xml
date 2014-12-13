@@ -4,18 +4,18 @@
 
     <string-array name="updateInterval">
         <item name="0">Immediately</item>
-        <item name="3600">Every 1 minute</item>
-        <item name="7200">Every 2 minutes</item>
-        <item name="18000">Every 5 minutes</item>
-        <item name="36000">Every 10 minutes</item>
+        <item name="1000">Every 1 s</item>
+        <item name="2000">Every 2 s</item>
+        <item name="3000">Every 5 s</item>
+        <item name="6000">Every 6 s</item>
     </string-array>
 
     <string-array name="updateIntervalValues">
         <item name="0">Immediately</item>
-        <item name="3600">3600</item>
-        <item name="7200">7200</item>
-        <item name="18000">18000</item>
-        <item name="36000">36000</item>
+        <item name="1000">1000</item>
+        <item name="2000">2000</item>
+        <item name="3000">3000</item>
+        <item name="6000">6000</item>
     </string-array>
 
 </resources>
