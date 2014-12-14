@@ -15,9 +15,7 @@ import com.bocian.locationTracker.android.LocalBinder;
 import com.bocian.locationTracker.android.location.TrackerLocationService;
 import com.google.gson.Gson;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -112,32 +110,37 @@ public class CommunicationService extends IntentService {
                 Log.d("LocationTracker", "CommunicationService: onHandleIntent polled:" + poll);
             }
 
-            Gson gson = new Gson();
-            final String toJson = gson.toJson(locations);
-            Log.d("LocationTracker", "TrackerLocationServiceConnection: " + toJson);
+            if (!locations.isEmpty()) {
+                Gson gson = new Gson();
+                final String toJson = gson.toJson(locations);
+                Log.d("LocationTracker", "TrackerLocationServiceConnection: " + toJson);
 
-            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    try {
-                        HttpClient client = new DefaultHttpClient()
-                        URL url = new URL("http://192.168.43.50:1337/");
-                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                        connection.setDoOutput(true);
-                        connection.setChunkedStreamingMode(0);
-                        OutputStream outputStream = connection.getOutputStream();
-                        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                        writer.write(toJson);
-                        writer.close();
-                    } catch (IOException e) {
-                        Log.e("LocationTracker", e.toString());
+                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        try {
+                            Log.e("LocationTracker", "sending.......................");
+
+                            URL url = new URL("http://192.168.43.50:1337/");
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                            connection.setRequestProperty("Content-Type", "application/json");
+                            connection.setRequestProperty("Accept", "application/json");
+                            connection.setRequestMethod("POST");
+                            connection.setDoOutput(true);
+                            connection.setFixedLengthStreamingMode(toJson.getBytes("UTF8").length);
+                            OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream());
+                            OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+                            writer.write(toJson);
+                            writer.flush();
+                            writer.close();
+                        } catch (IOException e) {
+                            Log.e("LocationTracker", e.toString());
+                        }
+                        return null;
                     }
-                    return null;
-                }
-            };
-
-            task.execute();
-
+                };
+                task.execute();
+            }
 
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected end");
 
