@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
+import com.bocian.locationTracker.android.LocalBinder;
 import com.bocian.locationTracker.android.location.TrackerLocationService;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -51,7 +52,6 @@ public class CommunicationService extends IntentService {
         Log.d("LocationTracker", "CommunicationService: onHandleIntent");
 
 
-
         Log.d("LocationTracker", "CommunicationService: onHandleIntent end");
 
 //        lockStatic.release();
@@ -89,7 +89,7 @@ public class CommunicationService extends IntentService {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected");
-            trackerLocationService = ((TrackerLocationService.LocalBinder) iBinder).getService();
+            trackerLocationService = ((LocalBinder<TrackerLocationService>) iBinder).getService();
 
             LinkedBlockingQueue<Location> queue = trackerLocationService.getQueue();
             while (!queue.isEmpty()) {

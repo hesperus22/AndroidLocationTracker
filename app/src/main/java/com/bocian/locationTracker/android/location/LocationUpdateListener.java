@@ -7,6 +7,4 @@ import android.location.Location;
  */
 public interface LocationUpdateListener {
     void handle(Location location);
-
-
 }

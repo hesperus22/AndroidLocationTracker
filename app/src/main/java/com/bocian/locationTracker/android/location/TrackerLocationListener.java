@@ -1,6 +1,5 @@
 package com.bocian.locationTracker.android.location;
 
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
@@ -12,13 +11,11 @@ import java.util.Set;
 /**
  * Created by bocian on 08.12.14.
  */
-public class TrackerLocationListener implements LocationListener{
-
+public class TrackerLocationListener implements LocationListener {
 
     private Set<LocationUpdateListener> listeners = new HashSet<LocationUpdateListener>();
 
-
-    public void addListener(LocationUpdateListener listener) {
+    void addListener(LocationUpdateListener listener) {
         listeners.add(listener);
     }
 
@@ -52,7 +49,7 @@ public class TrackerLocationListener implements LocationListener{
 
     }
 
-    public void removeListener(LocationUpdateListener locationUpdateListener) {
+    void removeListener(LocationUpdateListener locationUpdateListener) {
         listeners.remove(locationUpdateListener);
 
     }

@@ -129,13 +129,18 @@ public class TrackerLocationService extends Service {
 
         private LinkedBlockingQueue<Location> queue;
 
+        private Location lastLocation;
+
         private QueuedLocationUpdateListener() {
             queue = new LinkedBlockingQueue<Location>();
         }
 
         @Override
         public void handle(Location location) {
-            queue.offer(location);
+            if (lastLocation == null || lastLocation.getTime() != location.getTime()) {
+                queue.offer(location);
+                lastLocation = location;
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.bocian.locationTracker.android.LocalBinder;
 import com.bocian.locationTracker.android.location.TrackerLocationService;
 
 
@@ -104,7 +105,7 @@ public class CommunicationAlarmService extends Service {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected");
-            ((TrackerLocationService.LocalBinder) iBinder).getService();
+            ((LocalBinder) iBinder).getService();
         }
 
         @Override
