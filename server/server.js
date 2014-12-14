@@ -15,5 +15,5 @@ var server = http.createServer(function (req, res) {
 
 });
 
-server.listen(1337, '192.168.43.50');
-console.log('Server running at http://192.168.43.50:1337/');
+server.listen(1337, '192.168.1.103');
+console.log('Server running at http://192.168.1.103:1337/');

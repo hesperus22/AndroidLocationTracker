@@ -10,7 +10,7 @@ import com.bocian.locationTracker.android.location.TrackerLocationService;
 public class OnAlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-//        CommunicationService.acquireStaticLock(context);
+        CommunicationService.acquireStaticLock(context);
         Log.d("LocationTracker", "OnAlarmReceiver.onReceive");
         if (TrackerLocationService.IS_RUNNING)
             context.startService(new Intent(context, CommunicationService.class));

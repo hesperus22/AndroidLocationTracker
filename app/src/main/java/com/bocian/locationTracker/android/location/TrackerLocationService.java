@@ -11,8 +11,6 @@ import android.util.Log;
 
 import com.bocian.locationTracker.android.LocalBinder;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
 /**
  * Created by bocian on 08.12.14.
  */
@@ -27,6 +25,7 @@ public class TrackerLocationService extends Service {
     private TrackerLocationListener trackerLocationListener;
     private LocalBinder<TrackerLocationService> binder;
     private QueuedLocationUpdateListener queuedLocationUpdateListener;
+    private LocationStore locationStore = new MemoryLocationStore();
 
 
     @Override
@@ -52,8 +51,8 @@ public class TrackerLocationService extends Service {
         IS_RUNNING = true;
     }
 
-    public LinkedBlockingQueue<Location> getQueue() {
-        return queuedLocationUpdateListener.queue;
+    public LocationStore getLocationStore() {
+        return locationStore;
     }
 
     private void registerPreferenceListener() {
@@ -127,18 +126,14 @@ public class TrackerLocationService extends Service {
 
     private class QueuedLocationUpdateListener implements LocationUpdateListener {
 
-        private LinkedBlockingQueue<Location> queue;
-
         private Location lastLocation;
-
-        private QueuedLocationUpdateListener() {
-            queue = new LinkedBlockingQueue<Location>();
-        }
 
         @Override
         public void handle(Location location) {
             if (lastLocation == null || lastLocation.getTime() != location.getTime()) {
-                queue.offer(location);
+                locationStore.lock();
+                locationStore.add(location);
+                locationStore.unlock();
                 lastLocation = location;
             }
         }

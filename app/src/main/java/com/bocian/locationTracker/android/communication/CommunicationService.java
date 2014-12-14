@@ -5,24 +5,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.location.Location;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
 import com.bocian.locationTracker.android.LocalBinder;
+import com.bocian.locationTracker.android.location.LocationStore;
 import com.bocian.locationTracker.android.location.TrackerLocationService;
-import com.google.gson.Gson;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 public class CommunicationService extends IntentService {
@@ -63,7 +53,6 @@ public class CommunicationService extends IntentService {
 
         Log.d("LocationTracker", "CommunicationService: onHandleIntent end");
 
-//        lockStatic.release();
     }
 
     public static void acquireStaticLock(Context context) {
@@ -100,47 +89,18 @@ public class CommunicationService extends IntentService {
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected");
             trackerLocationService = ((LocalBinder<TrackerLocationService>) iBinder).getService();
 
-            List<Location> locations = new ArrayList<Location>();
-
-            LinkedBlockingQueue<Location> queue = trackerLocationService.getQueue();
-            while (!queue.isEmpty()) {
-                Location poll = queue.poll();
-                locations.add(poll);
-                Log.d("LocationTracker", "CommunicationService: onHandleIntent polled:" + poll);
-            }
-
-            if (!locations.isEmpty()) {
-                Gson gson = new Gson();
-                final String toJson = gson.toJson(locations);
-                Log.d("LocationTracker", "TrackerLocationServiceConnection: " + toJson);
-
-                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        try {
-                            Log.e("LocationTracker", "sending.......................");
-
-                            URL url = new URL("http://192.168.43.50:1337/");
-                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                            connection.setRequestProperty("Content-Type", "text/plain");
-                            connection.setRequestProperty("Accept", "application/json");
-                            connection.setRequestMethod("POST");
-                            connection.setDoOutput(true);
-                            connection.setFixedLengthStreamingMode(toJson.getBytes().length);
-                            OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream());
-                            outputStream.write(toJson.getBytes());
-                            outputStream.close();
-                        } catch (IOException e) {
-                            Log.e("LocationTracker", e.toString());
-                        }
-                        return null;
-                    }
-                };
+            LocationStore locationStore = trackerLocationService.getLocationStore();
+            locationStore.lock();
+            if (!locationStore.isEmpty()) {
+                locationStore.unlock();
+                SendLocationToServiceTask task = new SendLocationToServiceTask(locationStore, "http://192.168.1.103:1337");
                 task.execute();
+            } else {
+                locationStore.unlock();
             }
-
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected end");
 
+            lockStatic.release();
         }
 
         @Override

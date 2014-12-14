@@ -6,8 +6,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="an"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="an" />
 
 
     <application
@@ -33,15 +33,6 @@
                 <action android:name="android.intent.action.PACKAGE_INSTALL" />
 
                 <action android:name="com.bocian.locationTracker.android.FAKE_BROADCAST" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".settings.InstallReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_INSTALL" />
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-
-                <data android:scheme="package" />
             </intent-filter>
         </receiver>
 

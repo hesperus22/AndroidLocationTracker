@@ -51,6 +51,5 @@ public class TrackerLocationListener implements LocationListener {
 
     void removeListener(LocationUpdateListener locationUpdateListener) {
         listeners.remove(locationUpdateListener);
-
     }
 }
