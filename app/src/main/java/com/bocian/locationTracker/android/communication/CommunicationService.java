@@ -6,13 +6,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
 import com.bocian.locationTracker.android.LocalBinder;
 import com.bocian.locationTracker.android.location.TrackerLocationService;
+import com.google.gson.Gson;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
@@ -91,11 +103,41 @@ public class CommunicationService extends IntentService {
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected");
             trackerLocationService = ((LocalBinder<TrackerLocationService>) iBinder).getService();
 
+            List<Location> locations = new ArrayList<Location>();
+
             LinkedBlockingQueue<Location> queue = trackerLocationService.getQueue();
             while (!queue.isEmpty()) {
                 Location poll = queue.poll();
+                locations.add(poll);
                 Log.d("LocationTracker", "CommunicationService: onHandleIntent polled:" + poll);
             }
+
+            Gson gson = new Gson();
+            final String toJson = gson.toJson(locations);
+            Log.d("LocationTracker", "TrackerLocationServiceConnection: " + toJson);
+
+            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try {
+                        HttpClient client = new DefaultHttpClient()
+                        URL url = new URL("http://192.168.43.50:1337/");
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setDoOutput(true);
+                        connection.setChunkedStreamingMode(0);
+                        OutputStream outputStream = connection.getOutputStream();
+                        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+                        writer.write(toJson);
+                        writer.close();
+                    } catch (IOException e) {
+                        Log.e("LocationTracker", e.toString());
+                    }
+                    return null;
+                }
+            };
+
+            task.execute();
+
 
             Log.d("LocationTracker", "TrackerLocationServiceConnection: onServiceConnected end");
 
