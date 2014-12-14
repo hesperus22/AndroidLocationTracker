@@ -4,13 +4,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Binder;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.bocian.locationTracker.android.LocalBinder;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -22,33 +21,13 @@ public class TrackerLocationService extends Service {
 
     public static boolean IS_RUNNING = false;
 
+    public static final String FORCE_GPS_PREF_KEY = "forceGps";
+
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
-    private TrackerLocationListener listener;
+    private TrackerLocationListener trackerLocationListener;
+    private LocalBinder<TrackerLocationService> binder;
+    private QueuedLocationUpdateListener queuedLocationUpdateListener;
 
-    private IBinder binder = new LocalBinder();
-    private GpsStatus.Listener gpsStatusListener;
-    private LocationUpdateListener addLocationListener;
-
-    public void addLocationListener(LocationUpdateListener locationUpdateListener) {
-        listener.addListener(locationUpdateListener);
-    }
-
-    public void removeLocationListener(LocationUpdateListener locationUpdateListener) {
-        listener.removeListener(locationUpdateListener);
-    }
-
-
-    public class LocalBinder extends Binder {
-        public TrackerLocationService getService() {
-            return TrackerLocationService.this;
-        }
-    }
-
-    LinkedBlockingQueue<Location> queue;
-
-    public LinkedBlockingQueue<Location> getQueue() {
-        return queue;
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -60,36 +39,36 @@ public class TrackerLocationService extends Service {
         super.onCreate();
         Log.d("LocationTracker", "TrackerLocationService.onCreate");
 
+        registerPreferenceListener();
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        trackerLocationListener = new TrackerLocationListener();
+        binder = new LocalBinder<TrackerLocationService>(this);
+        queuedLocationUpdateListener = new QueuedLocationUpdateListener();
 
-        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-//                if (s.equals("forceGps")) {
-//                    Log.d("LocationTracker", "sharedPreferenceChangeListener: forceGps changed: " + sharedPreferences.getBoolean(s, false));
-//                    removeLocationUpdatesListener();
-//                    addLocationListener(sharedPreferences.getBoolean(s, false));
-//                }
-            }
-        };
-
-        preferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-
-        listener = new TrackerLocationListener();
-        gpsStatusListener = new GpsStatusListener();
-
-
-        queue = new LinkedBlockingQueue<Location>();
-
-        addLocationListener= new MyLocationUpdateListener();
-        addLocationListener(addLocationListener);
-
-        addLocationListener(true);
-//        registerGpsStatusListener();
+        addLocationListener(queuedLocationUpdateListener);
+        startListening(isGpsEnabled());
 
         Log.d("LocationTracker", "TrackerLocationService.onCreate end");
         IS_RUNNING = true;
+    }
+
+    public LinkedBlockingQueue<Location> getQueue() {
+        return queuedLocationUpdateListener.queue;
+    }
+
+    private void registerPreferenceListener() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+                if (s.equals(FORCE_GPS_PREF_KEY)) {
+                    Log.d("LocationTracker", "sharedPreferenceChangeListener: forceGps changed: " + sharedPreferences.getBoolean(s, false));
+                    removeLocationUpdatesListener();
+                    startListening(isGpsEnabled());
+                }
+            }
+        };
+        preferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 
     @Override
@@ -99,63 +78,61 @@ public class TrackerLocationService extends Service {
 
         Log.d("LocationTracker", "TrackerLocationService: destroyed");
 
-        removeLocationListener(addLocationListener);
-
-        // cleaning up
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        preferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationManager.removeGpsStatusListener(gpsStatusListener);
-        locationManager.removeUpdates(listener);
+        unregisterPreferenceListener();
+        removeLocationListener(queuedLocationUpdateListener);
+        removeLocationUpdatesListener();
     }
 
-    private void registerGpsStatusListener() {
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        locationManager.addGpsStatusListener(gpsStatusListener);
+    private void unregisterPreferenceListener() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 
     private void removeLocationUpdatesListener() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        locationManager.removeUpdates(listener);
+        locationManager.removeUpdates(trackerLocationListener);
     }
 
-    private void addLocationListener(boolean isGpsActive) {
+    private void startListening(boolean isGpsActive) {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (isGpsActive) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, listener);
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1, 1, listener);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, listener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, trackerLocationListener);
         }
+        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1, 1, trackerLocationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, trackerLocationListener);
     }
 
 
+    private boolean isGpsEnabled() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        return preferences.getBoolean(FORCE_GPS_PREF_KEY, false);
+    }
+
     @Override
-    public IBinder onBind(Intent intent) {
+    public LocalBinder<TrackerLocationService> onBind(Intent intent) {
         return binder;
     }
 
-    class GpsStatusListener implements GpsStatus.Listener {
 
-        @Override
-        public void onGpsStatusChanged(int event) {
-            Log.d("LocationTracker", "TrackerLocationListener.onGpsStatusChanged: " + event);
-            if (event == GpsStatus.GPS_EVENT_STOPPED) {
-                removeLocationUpdatesListener();
-                addLocationListener(false);
-            }
-            if (event == GpsStatus.GPS_EVENT_FIRST_FIX) {
-                removeLocationUpdatesListener();
-                addLocationListener(true);
-            }
-        }
+    private void addLocationListener(LocationUpdateListener locationUpdateListener) {
+        trackerLocationListener.addListener(locationUpdateListener);
     }
 
-    class MyLocationUpdateListener implements LocationUpdateListener {
+
+    private void removeLocationListener(LocationUpdateListener locationUpdateListener) {
+        trackerLocationListener.removeListener(locationUpdateListener);
+    }
+
+
+    private class QueuedLocationUpdateListener implements LocationUpdateListener {
+
+        private LinkedBlockingQueue<Location> queue;
+
+        private QueuedLocationUpdateListener() {
+            queue = new LinkedBlockingQueue<Location>();
+        }
+
         @Override
         public void handle(Location location) {
             queue.offer(location);
