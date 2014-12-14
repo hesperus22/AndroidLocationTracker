@@ -18,7 +18,6 @@ import com.google.gson.Gson;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -123,16 +122,14 @@ public class CommunicationService extends IntentService {
 
                             URL url = new URL("http://192.168.43.50:1337/");
                             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                            connection.setRequestProperty("Content-Type", "application/json");
+                            connection.setRequestProperty("Content-Type", "text/plain");
                             connection.setRequestProperty("Accept", "application/json");
                             connection.setRequestMethod("POST");
                             connection.setDoOutput(true);
-                            connection.setFixedLengthStreamingMode(toJson.getBytes("UTF8").length);
+                            connection.setFixedLengthStreamingMode(toJson.getBytes().length);
                             OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream());
-                            OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                            writer.write(toJson);
-                            writer.flush();
-                            writer.close();
+                            outputStream.write(toJson.getBytes());
+                            outputStream.close();
                         } catch (IOException e) {
                             Log.e("LocationTracker", e.toString());
                         }
